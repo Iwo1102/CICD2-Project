@@ -1,5 +1,8 @@
 package ie.atu.bookkeeper;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,18 +14,22 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Book {
+    @Id
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
+    private Long id;
+
     @NotBlank(message = "Title Cannot be blank")
-    private String title;
+    private String bookTitle;
 
     @NotBlank(message = "Author Cannot be blank")
-    private String author;
+    private String bookAuthor;
 
     @NotNull(message = "year cannot be blank")
-    private int year;
+    private int bookYear;
 
     @Min(value = 0, message = "Amount cannot be less than 0")
-    private int amount;
+    private int bookAmount;
 
-    @NotNull(message = "Age Range must be be entered") //test
-    private int ageRange;
+    @NotNull(message = "Age Range must be be entered")
+    private int bookAgeRange;
 }
