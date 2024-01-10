@@ -1,11 +1,10 @@
 package ie.atu.bookkeeper;
 
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class BookKeeperController {
@@ -21,6 +20,9 @@ public class BookKeeperController {
 
     @GetMapping("/login")
     public ResponseEntity<?> login(@RequestParam String username, String password) {
+        if(bookKeeperService.getLogged() == 1) {
+            return ResponseEntity.badRequest().body("Already Logged in");
+        }
         if (username == null || password == null) {
             return ResponseEntity.badRequest().body("Missing username or password");
         }
@@ -36,8 +38,18 @@ public class BookKeeperController {
         }
 
     }
+
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout() {
+        if(bookKeeperService.getLogged() == 0) {
+            return ResponseEntity.badRequest().body("Already logged out");
+        }
+        bookKeeperService.setLogged(0);
+        return ResponseEntity.ok("Logged out Successfully");
+    }
+
     @GetMapping("/getBook/{title}")
-    Book getBookFromRepo(@PathVariable String title) {
+    Book getBook(@PathVariable String title) {
         Book book = new Book();
         if (bookKeeperService.getLogged() != 1) {
             book.setBookTitle("Not logged in");
@@ -45,5 +57,33 @@ public class BookKeeperController {
             book = bookServiceClient.getBook(title);
         }
         return book;
+    }
+
+    @PostMapping("/addBook")
+    ResponseEntity<?> saveBook(@Valid @RequestBody Book book) {
+        if (bookKeeperService.getLogged() != 1) {
+            return ResponseEntity.badRequest().body("Not logged in");
+        }
+        bookServiceClient.addBookToRepo(book);
+        return ResponseEntity.ok("Book Added");
+    }
+
+
+    @DeleteMapping ("/removeBook/{id}")
+    ResponseEntity<?> removeBook(@PathVariable Long id) {
+        if (bookKeeperService.getLogged() != 1) {
+            return ResponseEntity.badRequest().body("Not logged in");
+        }
+        bookServiceClient.deleteBookFromRepo(id);
+        return ResponseEntity.ok("Book " + id + " Removed");
+    }
+
+    @PutMapping("/editBook/{title}")
+    ResponseEntity<?> editBook(@PathVariable String title, @RequestBody Book book) {
+        if (bookKeeperService.getLogged() != 1) {
+            return ResponseEntity.badRequest().body("Not logged in");
+        }
+        bookServiceClient.editBookInRepo(title, book);
+        return ResponseEntity.ok("Book Edited");
     }
 }
